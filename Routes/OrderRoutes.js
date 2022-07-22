@@ -1,0 +1,47 @@
+import express from "express";
+import asyncHandler from "express-async-handler";
+
+import Order from "../Models/OrderModel.js";
+
+const orderRouter = express.Router();
+
+orderRouter.post(
+  "/",
+  // protect,
+  asyncHandler(async (req, res) => {
+    const { orderItems, shippingData, totalPrice } = req.body;
+
+    if (orderItems && orderItems.length === 0) {
+      res.status(400);
+      throw new Error("No order items");
+      return;
+    } else {
+      const order = new Order({ orderItems, shippingData, totalPrice });
+
+      const createOrder = await order.save();
+      res.status(201).json(createOrder);
+    }
+  })
+);
+
+orderRouter.get(
+  "/:id",
+  // protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    // .populate(
+    //   "user",
+    //   "name email"
+    // );
+    const { orderItems, shippingData, totalPrice } = req.body;
+
+    if (order) {
+      res.json(order);
+    } else {
+      res.status(404);
+      throw new Error("Order Not Found");
+    }
+  })
+);
+
+export default orderRouter;
